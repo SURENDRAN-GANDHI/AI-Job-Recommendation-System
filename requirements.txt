@@ -10,13 +10,3 @@ AI_Job_Recommendation_System/
 
 require libraries for the AI Job Recommendation System
 numpy
-pandas
-scikit-learn
-flask
-joblib
-matplotlibseaborn
-nltk
-tensorflowkeras
-xgboost
-lightgbm
-catboost
