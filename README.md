@@ -1,0 +1,9 @@
+AI_Job_Recommendation_System/
+│
+├── data/
+├── notebooks/
+├── src/
+├── models/
+├── app/
+├── requirements.txt
+└── README.md
