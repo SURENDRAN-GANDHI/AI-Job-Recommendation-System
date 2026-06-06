@@ -1,12 +1,13 @@
-AI_Job_Recommendation_System/
-│
-├── data/
-├── notebooks/
-├── src/
-├── models/
-├── app/
-├── requirements.txt
-└── README.md
-
-require libraries for the AI Job Recommendation System
+pandas
 numpy
+scikit-learn
+nltk
+spacy
+sentence-transformers
+pdfplumber
+PyPDF2
+fastapi
+uvicorn
+matplotlib
+seaborn
+loguru
