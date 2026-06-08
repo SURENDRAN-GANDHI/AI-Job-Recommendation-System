@@ -11,3 +11,4 @@ uvicorn
 matplotlib
 seaborn
 loguru
+beautifulsoup4
