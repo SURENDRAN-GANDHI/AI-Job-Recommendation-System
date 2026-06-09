@@ -1,0 +1,220 @@
+{
+  "total_resumes": 1736,
+  "total_skills_extracted": 15720,
+  "avg_skills_per_resume": 9.06,
+  "max_skills_per_resume": 47,
+  "min_skills_per_resume": 1,
+  "unique_skills_found": 1852,
+  "top_20_skills_overall": [
+    "C++",
+    "Communication",
+    "Leadership",
+    "CompTIA",
+    "Compliance",
+    "Accounting",
+    "Teamwork",
+    "Problem Solving",
+    "Presentation",
+    "C",
+    "Time Management",
+    "Mentoring",
+    "Sales Strategy",
+    "Budget Management",
+    "SAFe",
+    "QA",
+    "Social Media",
+    "Negotiation",
+    "R",
+    "Forecasting"
+  ],
+  "tfidf_top_per_category": {
+    "ACCOUNTANT": [
+      "accountant",
+      "accounting",
+      "accounts",
+      "financial",
+      "ledger"
+    ],
+    "ADVOCATE": [
+      "advocate",
+      "state",
+      "city state",
+      "city",
+      "care"
+    ],
+    "AGRICULTURE": [
+      "agriculture",
+      "research",
+      "state",
+      "city",
+      "agricultural"
+    ],
+    "APPAREL": [
+      "apparel",
+      "sales",
+      "store",
+      "merchandising",
+      "merchandise"
+    ],
+    "ARTS": [
+      "arts",
+      "students",
+      "teacher",
+      "student",
+      "state"
+    ],
+    "AUTOMOBILE": [
+      "customer",
+      "state",
+      "company",
+      "city state",
+      "company city"
+    ],
+    "AVIATION": [
+      "aviation",
+      "aircraft",
+      "flight",
+      "maintenance",
+      "repair"
+    ],
+    "BANKING": [
+      "banking",
+      "financial",
+      "bank",
+      "loan",
+      "business"
+    ],
+    "BPO": [
+      "client",
+      "management",
+      "support",
+      "process",
+      "network"
+    ],
+    "BUSINESS-DEVELOPMENT": [
+      "business development",
+      "sales",
+      "business",
+      "marketing",
+      "development"
+    ],
+    "CHEF": [
+      "chef",
+      "food",
+      "kitchen",
+      "culinary",
+      "menu"
+    ],
+    "CONSTRUCTION": [
+      "construction",
+      "project",
+      "site",
+      "projects",
+      "safety"
+    ],
+    "CONSULTANT": [
+      "consultant",
+      "business",
+      "company",
+      "city",
+      "state"
+    ],
+    "DESIGNER": [
+      "designer",
+      "design",
+      "graphic",
+      "designer company",
+      "graphic designer"
+    ],
+    "DIGITAL-MEDIA": [
+      "digital",
+      "media",
+      "marketing",
+      "social media",
+      "social"
+    ],
+    "ENGINEERING": [
+      "engineering",
+      "engineer",
+      "manufacturing",
+      "electrical",
+      "mechanical"
+    ],
+    "FINANCE": [
+      "finance",
+      "financial",
+      "accounting",
+      "finance manager",
+      "reporting"
+    ],
+    "FITNESS": [
+      "fitness",
+      "exercise",
+      "state",
+      "instructor",
+      "city"
+    ],
+    "HEALTHCARE": [
+      "healthcare",
+      "care",
+      "medical",
+      "patient",
+      "health"
+    ],
+    "HR": [
+      "hr",
+      "employee",
+      "human",
+      "human resources",
+      "benefits"
+    ],
+    "INFORMATION-TECHNOLOGY": [
+      "information technology",
+      "technology",
+      "network",
+      "hardware",
+      "server"
+    ],
+    "PUBLIC-RELATIONS": [
+      "public relations",
+      "public",
+      "media",
+      "relations",
+      "press"
+    ],
+    "SALES": [
+      "sales",
+      "sales associate",
+      "customers",
+      "customer",
+      "service"
+    ],
+    "TEACHER": [
+      "teacher",
+      "students",
+      "classroom",
+      "teaching",
+      "learning"
+    ]
+  },
+  "skills_by_domain": {
+    "soft_skills": 4183,
+    "programming_languages": 2539,
+    "business_finance": 1776,
+    "other": 1686,
+    "sales_marketing": 958,
+    "project_management": 910,
+    "certifications": 741,
+    "design_creative": 588,
+    "healthcare": 547,
+    "data_science_ml": 456,
+    "databases": 342,
+    "testing": 268,
+    "networking_security": 197,
+    "web_frontend": 189,
+    "cloud_devops": 153,
+    "backend_frameworks": 89,
+    "version_control": 53,
+    "big_data": 45
+  }
+}
