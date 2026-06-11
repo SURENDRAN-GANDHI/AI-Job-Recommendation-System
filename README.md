@@ -93,6 +93,7 @@ AI_Job_Recommendation_System/
 │   ├── model.py
 │   ├── recommender.py
 │   └── app.py
+    |
 
 ├── requirements.txt
 ├── README.md
