@@ -1,10 +1,8 @@
 """
-app.py
-======
 AI Job Recommendation System — Streamlit Dashboard
 
 Features
---------
+
 1. Upload Resume PDF
 2. Extract Skills
 3. Match Jobs
@@ -12,10 +10,6 @@ Features
 5. Show Missing Skills
 6. Show Top 5 Recommended Jobs
 7. Interactive Dashboard
-
-Run
----
-    streamlit run app.py
 """
 
 from __future__ import annotations
@@ -31,14 +25,14 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-# ── path setup ────────────────────────────────────────────────────────────────
+# path setup 
 _APP_DIR = Path(__file__).resolve().parent
 _SRC_DIR = _APP_DIR / "src"
 for _p in [str(_APP_DIR), str(_SRC_DIR)]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-# ── PDF extraction ────────────────────────────────────────────────────────────
+# PDF extraction
 try:
     import pdfplumber
     _PDF_BACKEND = "pdfplumber"
@@ -49,7 +43,7 @@ except ImportError:
     except ImportError:
         _PDF_BACKEND = "none"
 
-# ── project imports ───────────────────────────────────────────────────────────
+# project imports
 try:
     from skill_extractor import SkillExtractor
     from model import JobMatchingModel
@@ -60,9 +54,9 @@ except ImportError as _e:
 
 logging.basicConfig(level=logging.WARNING)
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PAGE CONFIG  (must be first Streamlit call)
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# PAGE CONFIG 
+
 st.set_page_config(
     page_title="AI Job Recommender",
     page_icon="💼",
@@ -70,9 +64,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# DESIGN TOKENS  — navy / sky-blue / white palette
-# ═══════════════════════════════════════════════════════════════════════════════
+# DESIGN TOKENS  
 CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
@@ -234,9 +226,8 @@ hr { border: none; border-top: 1px solid #DDEEFF; margin: 1.2rem 0; }
 st.markdown(CSS, unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # HELPERS
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def _extract_pdf_text(file_bytes: bytes) -> str:
     if _PDF_BACKEND == "pdfplumber":
@@ -313,9 +304,8 @@ def _simple_gap(resume: list[str], job: list[str]) -> dict:
     return {"matched": matched, "missing": missing, "extra": extra, "match_pct": pct}
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # SIDEBAR
-# ═══════════════════════════════════════════════════════════════════════════════
 
 with st.sidebar:
     st.markdown("## 💼 AI Job Recommender")
@@ -338,9 +328,7 @@ with st.sidebar:
         st.warning("No PDF library found. Install `pdfplumber` or `pypdf`.")
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 # HERO
-# ═══════════════════════════════════════════════════════════════════════════════
 
 st.markdown("""
 <div class="hero">
@@ -352,9 +340,8 @@ st.markdown("""
 </div>""", unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # STEP 1 — UPLOAD
-# ═══════════════════════════════════════════════════════════════════════════════
 
 st.markdown('<p class="section-label">Step 1 — Upload your resume</p>', unsafe_allow_html=True)
 uploaded = st.file_uploader("Drop your resume PDF here", type=["pdf"], label_visibility="collapsed")
@@ -369,9 +356,8 @@ if uploaded is not None:
         st.error("Could not extract text. Try a text-based (not scanned) PDF.")
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # STEP 2 — EXTRACT SKILLS
-# ═══════════════════════════════════════════════════════════════════════════════
 
 resume_skills: list[str] = []
 
@@ -424,9 +410,8 @@ if resume_text.strip():
             st.success(f"Updated — {len(resume_skills)} skills saved.")
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # STEP 3 — MATCH
-# ═══════════════════════════════════════════════════════════════════════════════
 
 if resume_skills:
     st.markdown("---")
@@ -472,7 +457,7 @@ if resume_skills:
                        if not _IMPORTS_OK
                        else model.skill_gap(resume_skills, job_skills_list[best_idx]))
 
-        # ── KPI strip ─────────────────────────────────────────────────────────
+        # KPI strip 
         st.markdown("---")
         st.markdown('<p class="section-label">At a glance</p>', unsafe_allow_html=True)
         k1, k2, k3, k4 = st.columns(4)
@@ -508,7 +493,7 @@ if resume_skills:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("---")
 
-        # ── Two-column: job list + skill gap ──────────────────────────────────
+        # Two-column: job list + skill gap 
         left, right = st.columns([1, 1], gap="large")
 
         with left:
@@ -546,7 +531,7 @@ if resume_skills:
             st.markdown('<p class="section-label" style="color:#37474F">➕ Extra skills you have</p>', unsafe_allow_html=True)
             st.markdown(f'<div class="skills-wrap">{_skill_pills(gap["extra"][:15], "pill-grey")}</div>', unsafe_allow_html=True)
 
-        # ── Score distribution chart ──────────────────────────────────────────
+        # Score distribution chart
         st.markdown("---")
         st.markdown('<p class="section-label">Match score distribution across all jobs</p>', unsafe_allow_html=True)
         chart_df = (
@@ -556,7 +541,7 @@ if resume_skills:
         )
         st.bar_chart(chart_df.set_index("Job")["Score"], height=300, color="#1565C0")
 
-        # ── Download ──────────────────────────────────────────────────────────
+        # Download 
         st.markdown("---")
         st.markdown('<p class="section-label">Export results</p>', unsafe_allow_html=True)
         export_rows = []
@@ -581,9 +566,8 @@ if resume_skills:
             mime="text/csv",
         )
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # EMPTY STATE
-# ═══════════════════════════════════════════════════════════════════════════════
 
 if not uploaded:
     st.markdown("---")
