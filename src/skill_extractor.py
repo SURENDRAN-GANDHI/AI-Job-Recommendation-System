@@ -1,30 +1,3 @@
-"""
-skill_extractor.py
-==================
-AI Job Recommendation System — Resume Skill Extractor
-
-Extracts technical and soft skills from resume text using:
-  1. Rule-based keyword matching     (curated skill taxonomy)
-  2. Pattern-based extraction        (regex for versions, certifications)
-  3. spaCy NER + noun-chunk fallback (unseen / domain terms)
-  4. TF-IDF top-N per category       (data-driven discovery)
-
-Outputs (written to ./outputs/):
-  skill_matrix.csv          — one row per resume, one col per skill (binary)
-  skill_frequencies.csv     — skill name, total count, per-category counts
-  skill_report.json         — summary statistics
-  resume_skills.csv         — resume ID + Category + extracted skill list
-
-Usage:
-  # standalone
-  python skill_extractor.py
-
-  # imported
-  from skill_extractor import SkillExtractor
-  se = SkillExtractor()
-  skills = se.extract("Proficient in Python, SQL and AWS. Led Agile sprints.")
-"""
-
 import re
 import json
 import logging
@@ -38,7 +11,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 warnings.filterwarnings("ignore")
 
-# ── optional spaCy ────────────────────────────────────────────────────────────
+# optional spaCy
 try:
     import spacy
     _NLP = spacy.load("en_core_web_sm")
@@ -58,16 +31,15 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 0.  SKILL TAXONOMY
+
+#     SKILL TAXONOMY
 #     Organised by domain → category → [skill aliases]
 #     Aliases are matched case-insensitively; the FIRST alias is the
 #     canonical name stored in the output.
-# ═══════════════════════════════════════════════════════════════════════════════
 
 SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
 
-    # ── Programming Languages ─────────────────────────────────────────────────
+    # Programming Languages 
     "programming_languages": {
         "Python"      : ["python"],
         "Java"        : ["java"],
@@ -94,7 +66,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Assembly"    : ["assembly language", r"\basm\b"],
     },
 
-    # ── Web & Frontend ────────────────────────────────────────────────────────
+    # Web & Frontend
     "web_frontend": {
         "HTML"        : ["html", "html5"],
         "CSS"         : ["css", "css3"],
@@ -113,7 +85,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Webpack"     : ["webpack"],
     },
 
-    # ── Backend & Frameworks ──────────────────────────────────────────────────
+    # Backend & Frameworks 
     "backend_frameworks": {
         "Django"      : ["django"],
         "Flask"       : ["flask"],
@@ -132,7 +104,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "gRPC"        : ["grpc"],
     },
 
-    # ── Databases ─────────────────────────────────────────────────────────────
+    # Databases 
     "databases": {
         "SQL"         : [r"\bsql\b"],
         "MySQL"       : ["mysql"],
@@ -154,7 +126,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "NoSQL"       : ["nosql", "no-sql"],
     },
 
-    # ── Cloud & DevOps ────────────────────────────────────────────────────────
+    # Cloud & DevOps 
     "cloud_devops": {
         "AWS"         : ["aws", "amazon web services"],
         "Azure"       : ["azure", "microsoft azure"],
@@ -180,7 +152,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Serverless"  : ["serverless", "lambda functions", "aws lambda"],
     },
 
-    # ── Data Science & ML ─────────────────────────────────────────────────────
+    # Data Science & ML 
     "data_science_ml": {
         "Machine Learning"   : ["machine learning", r"\bml\b"],
         "Deep Learning"      : ["deep learning", r"\bdl\b"],
@@ -217,7 +189,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Reinforcement Learning": ["reinforcement learning", r"\brl\b"],
     },
 
-    # ── Big Data ──────────────────────────────────────────────────────────────
+    # Big Data 
     "big_data": {
         "Hadoop"      : ["hadoop", "apache hadoop"],
         "Spark"       : ["apache spark", r"\bspark\b"],
@@ -236,7 +208,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "HDFS"        : ["hdfs"],
     },
 
-    # ── Version Control & Collaboration ───────────────────────────────────────
+    # Version Control & Collaboration 
     "version_control": {
         "Git"         : [r"\bgit\b"],
         "GitHub"      : ["github"],
@@ -249,7 +221,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Slack"       : ["slack"],
     },
 
-    # ── Testing ───────────────────────────────────────────────────────────────
+    # Testing 
     "testing": {
         "Unit Testing"    : ["unit testing", "unit test", "unit tests"],
         "Integration Testing": ["integration testing", "integration test"],
@@ -269,7 +241,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "QA"              : [r"\bqa\b", "quality assurance"],
     },
 
-    # ── Networking & Security ─────────────────────────────────────────────────
+    # Networking & Security
     "networking_security": {
         "Network Security"  : ["network security", "cybersecurity", "cyber security",
                                "information security"],
@@ -288,7 +260,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "SOC"               : [r"\bsoc\b", "security operations center"],
     },
 
-    # ── Project Management & Methodologies ───────────────────────────────────
+    # Project Management & Methodologies 
     "project_management": {
         "Agile"       : ["agile", "agile methodology"],
         "Scrum"       : ["scrum"],
@@ -306,7 +278,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Resource Planning": ["resource planning", "resource management"],
     },
 
-    # ── Business & Finance ────────────────────────────────────────────────────
+    # Business & Finance
     "business_finance": {
         "Financial Analysis"  : ["financial analysis", "financial modelling",
                                  "financial modeling"],
@@ -327,7 +299,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "KYC/AML"             : ["kyc", "aml", "know your customer", "anti money laundering"],
     },
 
-    # ── Healthcare & Medical ──────────────────────────────────────────────────
+    # Healthcare & Medical
     "healthcare": {
         "Patient Care"        : ["patient care", "patient management"],
         "Clinical Research"   : ["clinical research", "clinical trials"],
@@ -344,7 +316,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Healthcare Management": ["healthcare management", "hospital administration"],
     },
 
-    # ── Design & Creative ─────────────────────────────────────────────────────
+    # Design & Creative 
     "design_creative": {
         "Photoshop"       : ["photoshop", "adobe photoshop"],
         "Illustrator"     : ["illustrator", "adobe illustrator"],
@@ -365,7 +337,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Brand Design"    : ["branding", "brand design", "brand identity"],
     },
 
-    # ── Sales & Marketing ─────────────────────────────────────────────────────
+    # Sales & Marketing
     "sales_marketing": {
         "Digital Marketing" : ["digital marketing"],
         "SEO"               : [r"\bseo\b", "search engine optimization",
@@ -389,7 +361,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Copywriting"       : ["copywriting", "copy writing"],
     },
 
-    # ── Soft Skills ───────────────────────────────────────────────────────────
+    # Soft Skills 
     "soft_skills": {
         "Leadership"          : ["leadership", "team lead", "led a team",
                                  "led the team"],
@@ -413,7 +385,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
                                  "client handling"],
     },
 
-    # ── Certifications ────────────────────────────────────────────────────────
+    # Certifications
     "certifications": {
         "AWS Certified"       : ["aws certified", "aws certification"],
         "Google Certified"    : ["google certified", "google professional"],
@@ -433,7 +405,7 @@ SKILL_TAXONOMY: dict[str, dict[str, list[str]]] = {
     },
 }
 
-# ── flatten taxonomy to {alias_pattern → canonical_name, domain} ──────────────
+# flatten taxonomy to {alias_pattern → canonical_name, domain} 
 def _build_lookup(taxonomy: dict) -> list[tuple[re.Pattern, str, str]]:
     """
     Returns list of (compiled_pattern, canonical_skill, domain).
@@ -457,23 +429,21 @@ def _build_lookup(taxonomy: dict) -> list[tuple[re.Pattern, str, str]]:
 _SKILL_LOOKUP = _build_lookup(SKILL_TAXONOMY)
 
 
-# ── certification pattern (catches "AWS Certified Solutions Architect", etc.) ─
+# certification pattern (catches "AWS Certified Solutions Architect", etc.)
 _CERT_PATTERN = re.compile(
     r"\b(certified|certification|certificate)\s+[\w\s]{3,40}\b"
     r"|\b[\w\s]{3,30}\s+(certified|certification|certificate)\b",
     re.IGNORECASE,
 )
 
-# ── version pattern (Python 3.x, Java 11, Node 18, etc.) ─────────────────────
+# version pattern (Python 3.x, Java 11, Node 18, etc.)
 _VERSION_PATTERN = re.compile(
     r"\b(python|java|node|php|ruby|go|scala|kotlin|swift|angular|react|vue)\s*[\d]+[\d.]*\b",
     re.IGNORECASE,
 )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 1.  CORE EXTRACTOR CLASS
-# ═══════════════════════════════════════════════════════════════════════════════
+# CORE EXTRACTOR CLASS
 
 class SkillExtractor:
     """
@@ -494,7 +464,7 @@ class SkillExtractor:
         log.info("SkillExtractor ready  (NER=%s  backend=%s)",
                  self.use_ner, "spaCy" if _SPACY_OK else "regex-only")
 
-    # ── strategy 1: keyword matching ─────────────────────────────────────────
+    # strategy 1: keyword matching
     def _extract_keywords(self, text: str) -> list[dict]:
         found = []
         seen_canonical = set()
@@ -505,7 +475,7 @@ class SkillExtractor:
                 seen_canonical.add(canonical)
         return found
 
-    # ── strategy 2: pattern-based (versions, certifications) ─────────────────
+    # strategy 2: pattern-based (versions, certifications)
     def _extract_patterns(self, text: str) -> list[dict]:
         found = []
         for m in _VERSION_PATTERN.finditer(text):
@@ -520,7 +490,7 @@ class SkillExtractor:
                               "method": "cert_pattern"})
         return found
 
-    # ── strategy 3: spaCy NER noun-chunk discovery ────────────────────────────
+    # strategy 3: spaCy NER noun-chunk discovery
     def _extract_ner(self, text: str) -> list[dict]:
         if not self.use_ner:
             return []
@@ -544,7 +514,7 @@ class SkillExtractor:
                                   "method": "noun_chunk"})
         return found
 
-    # ── public API ────────────────────────────────────────────────────────────
+    # public API
     def extract(self, text: str, include_ner: bool = False) -> list[dict]:
         """
         Extract skills from a single text string.
@@ -575,10 +545,8 @@ class SkillExtractor:
         return [r["skill"] for r in self.extract(text, include_ner=include_ner)]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 2.  BATCH PROCESSING
-# ═══════════════════════════════════════════════════════════════════════════════
 
+# BATCH PROCESSING
 def extract_skills_dataframe(df: pd.DataFrame,
                              text_col: str = "Resume_str",
                              id_col:   str = "ID",
@@ -611,9 +579,7 @@ def extract_skills_dataframe(df: pd.DataFrame,
     return pd.DataFrame(records)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 3.  SKILL FREQUENCY ANALYSIS
-# ═══════════════════════════════════════════════════════════════════════════════
+# SKILL FREQUENCY ANALYSIS
 
 def compute_skill_frequencies(skill_df: pd.DataFrame,
                               cat_col: str = "Category") -> pd.DataFrame:
@@ -653,9 +619,8 @@ def compute_skill_frequencies(skill_df: pd.DataFrame,
     return freq_df
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 4.  SKILL MATRIX  (binary, resume × skill)
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# SKILL MATRIX  (binary, resume × skill)
 
 def build_skill_matrix(skill_df: pd.DataFrame,
                        id_col:  str = "ID",
@@ -693,9 +658,8 @@ def build_skill_matrix(skill_df: pd.DataFrame,
     return matrix
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 5.  TF-IDF SKILL DISCOVERY  (data-driven top-N per category)
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# TF-IDF SKILL DISCOVERY  (data-driven top-N per category)
 
 def tfidf_top_skills_per_category(df: pd.DataFrame,
                                    text_col: str = "Resume_str",
@@ -731,9 +695,8 @@ def tfidf_top_skills_per_category(df: pd.DataFrame,
     return results
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 6.  REPORT
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# REPORT
 
 def build_skill_report(skill_df: pd.DataFrame,
                        freq_df:  pd.DataFrame,
@@ -755,9 +718,9 @@ def build_skill_report(skill_df: pd.DataFrame,
     }
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 7.  SAVE
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# SAVE
+
 
 def save_outputs(skill_df:    pd.DataFrame,
                  freq_df:     pd.DataFrame,
@@ -788,9 +751,9 @@ def save_outputs(skill_df:    pd.DataFrame,
     log.info("Saved skill_report.json")
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 8.  PIPELINE ENTRY POINT
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# PIPELINE ENTRY POINT
+
 
 def run_pipeline(csv_path: Path = Path("dataset/Resume.csv"),
                  out_dir:  Path = Path("outputs"),
@@ -831,7 +794,7 @@ def run_pipeline(csv_path: Path = Path("dataset/Resume.csv"),
     # step 6 — save
     save_outputs(skill_df, freq_df, matrix, report, out_dir)
 
-    # ── print summary ─────────────────────────────────────────────────────────
+    # print summary 
     log.info("=" * 60)
     log.info("  Pipeline complete.")
     log.info("  Avg skills / resume : %.1f", report["avg_skills_per_resume"])
