@@ -1,26 +1,3 @@
-"""
-model.py
-========
-AI Job Recommendation System — Job Matching Model
-
-Converts skill lists into numerical vectors and computes
-cosine similarity between resumes and job descriptions.
-
-Designed to be imported and used by recommender.py.
-
-Usage:
-    from model import JobMatchingModel
-
-    model = JobMatchingModel()
-    model.fit(resume_skills, job_skills)
-
-    resume_matrix = model.transform(resume_skills)
-    job_matrix    = model.transform(job_skills)
-
-    scores = model.match(resume_matrix, job_matrix)
-    # scores.shape == (num_resumes, num_jobs)
-"""
-
 import logging
 import pickle
 import json
@@ -43,9 +20,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # CONSTANTS
-# ═══════════════════════════════════════════════════════════════════════════════
 
 VECTORIZER_MLB   = "mlb"       # MultiLabelBinarizer — fast, interpretable
 VECTORIZER_TFIDF = "tfidf"     # TF-IDF on joined skill strings — soft weighting
@@ -54,9 +30,8 @@ VECTORIZER_HYBRID = "hybrid"   # MLB + TF-IDF concatenated — best coverage
 SUPPORTED_VECTORIZERS = {VECTORIZER_MLB, VECTORIZER_TFIDF, VECTORIZER_HYBRID}
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # HELPER — skill normalisation
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def _normalise_skill(skill: str) -> str:
     """Lowercase, strip, collapse internal whitespace."""
@@ -81,40 +56,11 @@ def _skills_to_str(skills: list[str]) -> str:
     return " ".join(s.replace(" ", "_") for s in skills)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # CORE CLASS
-# ═══════════════════════════════════════════════════════════════════════════════
 
 class JobMatchingModel:
-    """
-    Resume-to-Job skill matching model.
-
-    Supports three vectorisation strategies:
-      - 'mlb'    : MultiLabelBinarizer  (binary presence, fast, interpretable)
-      - 'tfidf'  : TF-IDF on skill strings (soft weighting by rarity)
-      - 'hybrid' : MLB + TF-IDF concatenated (broadest coverage)
-
-    Similarity is always computed as cosine similarity, which is
-    magnitude-invariant and well-suited for sparse skill vectors.
-
-    Parameters
-    ----------
-    vectorizer_type : str
-        One of 'mlb', 'tfidf', 'hybrid'. Default 'mlb'.
-    tfidf_max_features : int
-        Maximum vocabulary size for TF-IDF. Default 3000.
-    normalize_vectors : bool
-        L2-normalise vectors before similarity (recommended). Default True.
-
-    Attributes
-    ----------
-    is_fitted_ : bool
-        True after fit() has been called.
-    vocabulary_ : list[str]
-        All skills seen during fit (MLB mode) or TF-IDF vocabulary.
-    n_features_ : int
-        Dimensionality of the feature space after fit.
-    """
+    
 
     def __init__(
         self,
@@ -145,7 +91,7 @@ class JobMatchingModel:
             vectorizer_type, normalize_vectors,
         )
 
-    # ── private helpers ───────────────────────────────────────────────────────
+    # private helpers
 
     def _validate_skill_lists(
         self, skills_list: list[list[str]], label: str = "input"
@@ -218,7 +164,7 @@ class JobMatchingModel:
             return matrix / norms
         return matrix
 
-    # ── public API ────────────────────────────────────────────────────────────
+    # public API 
 
     def fit(
         self,
@@ -357,7 +303,7 @@ class JobMatchingModel:
         )
         return scores.astype(np.float32)
 
-    # ── convenience end-to-end method ────────────────────────────────────────
+    # convenience end-to-end method 
 
     def fit_match(
         self,
@@ -382,7 +328,7 @@ class JobMatchingModel:
         j_mat = self.transform(job_skills)
         return self.match(r_mat, j_mat)
 
-    # ── top-k retrieval helpers ───────────────────────────────────────────────
+    # top-k retrieval helpers 
 
     def top_k_jobs(
         self,
@@ -450,7 +396,7 @@ class JobMatchingModel:
             })
         return results
 
-    # ── skill gap analysis ────────────────────────────────────────────────────
+    # skill gap analysis 
 
     def skill_gap(
         self,
@@ -490,7 +436,7 @@ class JobMatchingModel:
             "match_pct" : pct,
         }
 
-    # ── model persistence ─────────────────────────────────────────────────────
+    # model persistence
 
     def save(self, path: Union[str, Path]) -> None:
         """
@@ -532,7 +478,7 @@ class JobMatchingModel:
         log.info("Model loaded ← %s  (features=%d)", path, model.n_features_)
         return model
 
-    # ── diagnostics ───────────────────────────────────────────────────────────
+    # diagnostics 
 
     def summary(self) -> dict:
         """
@@ -557,14 +503,14 @@ class JobMatchingModel:
         )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # QUICK SMOKE TEST
-# ═══════════════════════════════════════════════════════════════════════════════
+
 
 if __name__ == "__main__":
     import pprint
 
-    # ── sample data ───────────────────────────────────────────────────────────
+    # sample data 
     sample_resumes = [
         ["Python", "Machine Learning", "TensorFlow", "SQL", "Docker", "Git"],
         ["Java", "Spring Boot", "Microservices", "Kubernetes", "PostgreSQL"],
@@ -593,7 +539,7 @@ if __name__ == "__main__":
 
     resume_ids = [f"Resume_{i+1}" for i in range(len(sample_resumes))]
 
-    # ── test all three vectorizer types ───────────────────────────────────────
+    # test all three vectorizer types 
     for vtype in [VECTORIZER_MLB, VECTORIZER_TFIDF, VECTORIZER_HYBRID]:
         print(f"\n{'='*60}")
         print(f"  Vectorizer: {vtype.upper()}")
@@ -621,7 +567,7 @@ if __name__ == "__main__":
         print(f"    Missing    : {gap['missing']}")
         print(f"    Extra      : {gap['extra']}")
 
-    # ── save / load round-trip ─────────────────────────────────────────────────
+    # save / load round-trip 
     print(f"\n{'='*60}")
     print("  Save / Load round-trip")
     print(f"{'='*60}")
@@ -639,7 +585,7 @@ if __name__ == "__main__":
     print(f"  Scores from loaded model match original: "
           f"{np.allclose(model.fit_match(sample_resumes, sample_jobs), scores_loaded)}")
 
-    # ── model summary ─────────────────────────────────────────────────────────
+    # model summary 
     print(f"\n{'='*60}")
     print("  Model Summary")
     print(f"{'='*60}")
