@@ -1,28 +1,4 @@
-"""
-data_preprocessing.py
-=====================
-AI Job Recommendation System — Resume Dataset Preprocessing Pipeline
-
-Covers:
-  1. Load & validate
-  2. Drop / rename columns
-  3. HTML structural feature extraction
-  4. Text cleaning  (lowercase, URL, email, punctuation, digits, whitespace)
-  5. Stopword removal + lemmatisation  (spaCy)
-  6. Length feature engineering
-  7. Label encoding
-  8. Outlier flagging
-  9. Train / val / test split  (stratified)
- 10. Save artefacts
-
-Usage:
-  python data_preprocessing.py
-
-Outputs (written to ./outputs/):
-  train.csv, val.csv, test.csv
-  label_encoder.pkl
-  preprocessing_report.json
-"""
+# processing
 
 import os
 import re
@@ -38,7 +14,7 @@ from bs4 import BeautifulSoup
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 
-# ── optional spaCy (falls back to NLTK if not installed) ──────────────────────
+# spaCy
 try:
     import spacy
     _NLP = spacy.load("en_core_web_sm", disable=["parser", "ner"])
@@ -57,7 +33,7 @@ except (ImportError, OSError):
 
 warnings.filterwarnings("ignore")
 
-# ── logging ───────────────────────────────────────────────────────────────────
+# logging 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(message)s",
@@ -66,9 +42,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 0.  CONFIG
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# CONFIG
 
 CSV_PATH    = Path("dataset/Resume.csv")          # adjust if needed
 OUTPUT_DIR  = Path("outputs")
@@ -93,9 +68,8 @@ SECTION_KEYWORDS = [
 ]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 1.  LOAD & VALIDATE
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# LOAD & VALIDATE
 
 def load_and_validate(csv_path: Path) -> pd.DataFrame:
     """Load CSV and run basic sanity checks."""
@@ -131,9 +105,9 @@ def load_and_validate(csv_path: Path) -> pd.DataFrame:
     return df
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 2.  HTML STRUCTURAL FEATURES
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# HTML STRUCTURAL FEATURES
+
 
 def extract_html_features(html: str) -> dict:
     """Pull numeric structural signals from Resume_html."""
@@ -165,16 +139,15 @@ def add_html_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 3.  TEXT CLEANING
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# TEXT CLEANING
 
 # pre-compiled regex patterns (compile once, reuse)
 _RE_URL      = re.compile(r"https?://\S+|www\.\S+")
 _RE_EMAIL    = re.compile(r"\S+@\S+\.\S+")
 _RE_PHONE    = re.compile(r"\+?\d[\d\s\-().]{7,}\d")
 _RE_HTML_TAG = re.compile(r"<[^>]+>")
-_RE_SPECIAL  = re.compile(r"[^a-z\s]")          # keep only letters + spaces
+_RE_SPECIAL  = re.compile(r"[^a-z\s]")         
 _RE_MULTI_WS = re.compile(r"\s+")
 
 
@@ -199,9 +172,8 @@ def clean_text(text: str) -> str:
     return text
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 4.  STOPWORD REMOVAL + LEMMATISATION
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# STOPWORD REMOVAL + LEMMATISATION
 
 def _lemmatise_spacy(text: str) -> str:
     """Lemmatise using spaCy (preferred)."""
@@ -254,9 +226,8 @@ def preprocess_text_column(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 5.  LENGTH FEATURE ENGINEERING
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# LENGTH FEATURE ENGINEERING
 
 def add_length_features(df: pd.DataFrame) -> pd.DataFrame:
     """Add char/word/sentence count columns on the raw Resume_str."""
@@ -271,9 +242,8 @@ def add_length_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 6.  OUTLIER FLAGGING
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# OUTLIER FLAGGING
 
 def flag_outliers(df: pd.DataFrame,
                   col: str = "word_count",
@@ -295,9 +265,8 @@ def flag_outliers(df: pd.DataFrame,
     return df
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 7.  LABEL ENCODING
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# LABEL ENCODING
 
 def encode_labels(df: pd.DataFrame) -> tuple[pd.DataFrame, LabelEncoder]:
     """Encode Category → integer label. Returns df + fitted encoder."""
@@ -308,9 +277,7 @@ def encode_labels(df: pd.DataFrame) -> tuple[pd.DataFrame, LabelEncoder]:
     return df, le
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 8.  DROP UNNECESSARY COLUMNS
-# ═══════════════════════════════════════════════════════════════════════════════
+# DROP UNNECESSARY COLUMNS
 
 def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Drop raw HTML and intermediate columns to save memory."""
@@ -320,9 +287,8 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 9.  TRAIN / VAL / TEST SPLIT
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# TRAIN / VAL / TEST SPLIT
 
 def split_dataset(df: pd.DataFrame,
                   ratios: dict = SPLIT_RATIOS,
@@ -367,9 +333,8 @@ def split_dataset(df: pd.DataFrame,
     return df_train, df_val, df_test
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 10.  SAVE ARTEFACTS
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# SAVE ARTEFACTS
 
 def save_artefacts(df_train: pd.DataFrame,
                    df_val:   pd.DataFrame,
@@ -393,9 +358,8 @@ def save_artefacts(df_train: pd.DataFrame,
     log.info("Saved preprocessing_report.json → %s", out_dir)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 11.  PIPELINE ORCHESTRATOR
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# PIPELINE ORCHESTRATOR
 
 def build_report(df: pd.DataFrame,
                  df_train: pd.DataFrame,
@@ -432,7 +396,7 @@ def run_pipeline(csv_path: Path = CSV_PATH) -> None:
     log.info("  Resume Preprocessing Pipeline  (backend: %s)", _BACKEND)
     log.info("=" * 60)
 
-    # ── steps ────────────────────────────────────────────────────────
+    # steps
     df = load_and_validate(csv_path)        # 1. load
     df = add_html_features(df)              # 2. html features
     df = preprocess_text_column(df)         # 3+4. clean + lemmatise
@@ -441,13 +405,13 @@ def run_pipeline(csv_path: Path = CSV_PATH) -> None:
     df, le = encode_labels(df)              # 7. label encoding
     df = drop_columns(df)                   # 8. drop heavy columns
 
-    df_train, df_val, df_test = split_dataset(df)  # 9. split
+    df_train, df_val, df_test = split_dataset(df)  
 
     report = build_report(df, df_train, df_val, df_test, le)
 
     save_artefacts(df_train, df_val, df_test, le, report)  # 10. save
 
-    # ── final summary ─────────────────────────────────────────────────
+    # final summary
     log.info("=" * 60)
     log.info("  Pipeline complete.")
     log.info("  Columns in train.csv : %s", df_train.columns.tolist())
@@ -456,9 +420,8 @@ def run_pipeline(csv_path: Path = CSV_PATH) -> None:
     log.info("=" * 60)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
 # ENTRY POINT
-# ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     run_pipeline()
