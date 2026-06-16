@@ -50,6 +50,12 @@ This project automates the process of matching resumes to job descriptions by:
 * Analyze skill gaps
 * User-friendly Streamlit interface
 
+## 🎬 Demo
+
+![Demo 1](demo_1.gif)
+
+![Demo 2](demo_2.gif)
+
 ## 🏗️ Project Architecture
 
 ```text
