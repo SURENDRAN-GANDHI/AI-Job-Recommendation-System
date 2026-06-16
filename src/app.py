@@ -311,7 +311,7 @@ with st.sidebar:
     st.markdown("## 💼 AI Job Recommender")
     st.markdown("---")
     st.markdown("### 📂 Data Paths")
-    jobs_path = st.text_input("jobs.csv path", value="dataset/jobs.csv")
+    jobs_path = st.text_input("jobs.csv path", value="/home/surendran-g/Documents/AI_Job_Recommendation_System/dataset/jobs.csv")
     st.markdown("---")
     st.markdown("### ⚙️ Settings")
     vectorizer = st.selectbox("Vectorizer", ["mlb", "tfidf", "hybrid"], index=0)
