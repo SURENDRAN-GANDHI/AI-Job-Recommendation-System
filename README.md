@@ -82,27 +82,33 @@ Recommendations
 
 ```text
 AI_Job_Recommendation_System/
-
+│
 ├── dataset/
+│   ├── resume.csv
 │   └── jobs.csv
-
+│
+├── notebooks/
+│   ├── 01_eda.ipynb
+│   └── integrity_report.csv
+│
 ├── outputs/
-│   ├── resume_skills.csv
-│   ├── recommendations.csv
-│   ├── skill_frequencies.csv
-│   ├── skill_matrix.csv
-│   └── skill_report.json
-
+│   └── recommendations.csv
+│
 ├── src/
 │   ├── data_processing.py
 │   ├── skill_extractor.py
 │   ├── model.py
 │   ├── recommender.py
-│   └── app.py
-    |
-
+│   ├── app.py
+│   └── run_model.py
+│
+|
+│── demo_1.gif
+│── demo_2.gif
+│
 ├── requirements.txt
 ├── README.md
+├── LICENSE
 └── .gitignore
 ```
 
@@ -202,9 +208,9 @@ Match Percentage:
 
 ## 👨‍💻 Author
 
-**Surendran G**
+**SURENDRAN G**
 
-Computer Science Engineering Student
+Computer Science Engineering
 
 Interested in:
 
