@@ -1,14 +1,56 @@
-pandas
-numpy
-scikit-learn
-nltk
-spacy
-sentence-transformers
-pdfplumber
-PyPDF2
-fastapi
-uvicorn
-matplotlib
-seaborn
-loguru
-beautifulsoup4
+# ============================================================
+# AI Job Recommendation System — Requirements
+# Python 3.10+  (tested on 3.12)
+# ============================================================
+# Install all:
+#   pip install -r requirements.txt
+#
+# After install, download spaCy model:
+#   python -m spacy download en_core_web_sm
+#
+# Run the app:
+#   streamlit run app.py
+# ============================================================
+
+
+# ── Web dashboard ────────────────────────────────────────────
+streamlit>=1.35.0
+
+
+# ── Data handling ────────────────────────────────────────────
+pandas>=2.2.0
+numpy>=1.26.0
+
+
+# ── Machine learning ─────────────────────────────────────────
+scikit-learn>=1.4.0
+scipy>=1.13.0
+
+
+# ── NLP — skill extraction ───────────────────────────────────
+# spaCy is the primary backend; NLTK is the fallback
+spacy>=3.7.0
+# After install run: python -m spacy download en_core_web_sm
+nltk>=3.8.0
+
+
+# ── HTML parsing (Resume_html column) ────────────────────────
+beautifulsoup4>=4.12.0
+lxml>=5.2.0          # faster BS4 parser (optional but recommended)
+
+
+# ── PDF text extraction ──────────────────────────────────────
+# pdfplumber is primary; pypdf is fallback
+pdfplumber>=0.10.0
+pypdf>=4.0.0
+
+
+# ── Visualisation (EDA notebooks) ────────────────────────────
+matplotlib>=3.8.0
+seaborn>=0.13.0
+plotly>=5.20.0
+
+
+# ── Utilities ────────────────────────────────────────────────
+tqdm>=4.66.0         # progress bars in batch processing
+python-dotenv>=1.0.0 # optional: load .env config files
